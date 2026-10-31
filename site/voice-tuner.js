@@ -22,6 +22,7 @@ class TunerEngine {
     this.fGate = new Float32Array(this.FR);
     this.fCorr = new Float32Array(this.FR);
     this.fTarget = new Int16Array(this.FR).fill(-1);
+    this.fLevel = new Float32Array(this.FR);
     this.fCount = 0;
     this.scale = [true,false,true,false,true,true,false,true,false,true,false,true];
     this.tau = 0.04; this.enabled = true;
@@ -29,7 +30,11 @@ class TunerEngine {
     this.corr = 0; this.target = -1; this.hist = [];
     this.lastVoiced = false; this.silent = 0; this.rmsDb = -120;
     this.Tu = Math.round(sr * 0.006);
-    this.FMIN = 0.75;          // menor fator de formante aceito (define a folga de atraso)
+    this.FMIN = 0.6;           // menor fator de formante aceito
+    this.transpose = 0;        // tom da voz, em semitons
+    this.timbre = 1;           // multiplicador de formante para todas as vozes
+    this.vibDepth = 0; this.vibRate = 5.5; this.vibDelay = 0.35; this.vibPhase = 0; this.vibAmt = 0; this.hold = 0;
+    this.breath = 0; this.lvl = 0; this.nL = 0; this.nR = 0;
     this.MAXDELAY = Math.round(sr * 0.04);
     this.voices = [];
     this.setRange(opts.minHz || 80, opts.maxHz || 1100);
@@ -67,21 +72,32 @@ class TunerEngine {
       const v = {
         kind: c.kind || 'main',
         gain: c.gain == null ? 1 : c.gain,
-        formant: Math.max(this.FMIN, Math.min(1.5, c.formant || 1)),
+        fBase: c.formant || 1, formant: 1,
         detune: c.detune || 0,
         dir: c.dir === -1 ? -1 : 1,
         rough: Math.max(0, Math.min(1, c.rough || 0)), flip: false,
         delay: Math.min(this.MAXDELAY, Math.round((c.delayMs || 0) * this.sr / 1000)),
         gL: Math.SQRT2 * Math.cos(ang), gR: Math.SQRT2 * Math.sin(ang)
       };
+      v.formant = this.clampF(v.fBase * this.timbre);
       const o = old[i];
       if (o && o.delay === v.delay && this.D) { v.sMark = o.sMark; v.aMark = o.aMark; } else if (this.D) this.resetVoice(v);
       return v;
     });
     if (this.maxT) this.recalc(false);
   }
+  clampF(f) { return Math.max(this.FMIN, Math.min(1.6, f)); }
+  setTimbre(t) {
+    this.timbre = t;
+    for (const v of this.voices) v.formant = this.clampF(v.fBase * t);
+    this.recalc(false);
+  }
   config(m) {
     if (!m) return;
+    if (m.type === 'transpose') { this.transpose = Math.max(-12, Math.min(12, m.v)); return; }
+    if (m.type === 'timbre') { this.setTimbre(Math.max(0.6, Math.min(1.5, m.v))); return; }
+    if (m.type === 'vibrato') { this.vibDepth = m.depth; this.vibRate = m.rate || 5.5; return; }
+    if (m.type === 'breath') { this.breath = m.v; return; }
     if (m.type === 'scale') this.scale = m.notes.slice();
     else if (m.type === 'tau') this.tau = m.v;
     else if (m.type === 'enabled') this.enabled = !!m.v;
@@ -153,28 +169,42 @@ class TunerEngine {
       this.hist.push(midi); if (this.hist.length > 3) this.hist.shift();
       const s = this.hist.slice().sort((a, b) => a - b);
       const mm = s[s.length >> 1];
-      const n = this.nearest(mm);
-      if (this.target < 0 || Math.abs(mm - this.target) > Math.abs(mm - n) + 0.12) this.target = n;
+      const sh = mm + this.transpose;          // nota já deslocada pelo "tom da voz"
       if (this.enabled) {
+        const n = this.nearest(sh);
+        if (this.target < 0 || Math.abs(sh - this.target) > Math.abs(sh - n) + 0.12) { if (n !== this.target) this.hold = 0; this.target = n; }
         const desired = this.target - midi;
-        if (!this.lastVoiced) this.corr = this.tau < 0.02 ? desired : 0;
+        if (!this.lastVoiced) this.corr = this.tau < 0.02 ? desired : this.transpose;
         const a = this.tau <= 0 ? 1 : 1 - Math.exp(-(this.q / this.sr) / this.tau);
         this.corr += (desired - this.corr) * a;
-        if (this.corr > 12) this.corr = 12; if (this.corr < -12) this.corr = -12;
-      } else this.corr = 0;
+      } else {
+        const n = Math.round(sh);
+        if (n !== this.target) this.hold = 0;
+        this.target = n;
+        this.corr = this.transpose;
+      }
+      if (this.corr > 24) this.corr = 24; if (this.corr < -24) this.corr = -24;
+      // vibrato automático: entra depois de segurar a nota por um instante
+      this.hold += this.q / this.sr;
+      const ramp = Math.min(1, Math.max(0, (this.hold - this.vibDelay) / 0.3));
+      this.vibAmt += (ramp - this.vibAmt) * 0.2;
       this.silent = 0;
     } else {
-      this.hist.length = 0;
+      this.hist.length = 0; this.hold = 0; this.vibAmt *= 0.8;
       if (++this.silent > 60) this.target = -1;
     }
+    this.vibPhase += 2 * Math.PI * this.vibRate * this.q / this.sr;
+    if (this.vibPhase > 2 * Math.PI) this.vibPhase -= 2 * Math.PI;
+    const vib = this.vibDepth / 100 * Math.sin(this.vibPhase) * this.vibAmt;
     this.lastVoiced = voiced;
     this.fPeriod[j] = period;
     this.fVoiced[j] = voiced ? 1 : 0;
     this.fGate[j] = this.gate;
-    this.fCorr[j] = this.corr;
+    this.fCorr[j] = this.corr + vib;
     this.fTarget[j] = this.target;
+    this.fLevel[j] = Math.pow(10, this.rmsDb / 20) * this.gate;
     this.fCount++;
-    this.cur = voiced ? { raw: midi, out: midi + this.corr, tgt: this.target } : null;
+    this.cur = voiced ? { raw: midi, out: midi + this.corr + vib, tgt: this.target, tr: this.transpose } : null;
   }
   // deslocamento em semitons de uma voz para o quadro fi
   semis(v, fi) {
@@ -251,10 +281,26 @@ class TunerEngine {
     const end = this.pos + n;
     this.analyze();
     for (const v of this.voices) this.renderVoice(v, end);
+    // sopro: ruído suave que segue o volume da voz (no mesmo atraso da voz processada)
+    let l0 = this.lvl, l1 = l0;
+    if (this.breath > 0) {
+      const fo = this.frameAt(this.pos - this.D);
+      const want = fo >= 0 ? this.fLevel[fo] : 0;
+      l1 = l0 + (want - l0) * 0.35;
+      this.lvl = l1;
+    }
+    const bAmt = this.breath * 1.6;
     for (let i = 0; i < n; i++) {
       const idx = (this.pos + i) & mask;
-      outL[i] = this.outL[idx]; this.outL[idx] = 0;
-      if (outR) outR[i] = this.outR[idx];
+      let L = this.outL[idx], R = this.outR[idx];
+      if (bAmt > 0) {
+        const lv = (l0 + (l1 - l0) * i / n) * bAmt;
+        const wl = Math.random() * 2 - 1, wr = Math.random() * 2 - 1;
+        L += (wl - this.nL) * 0.5 * lv; R += (wr - this.nR) * 0.5 * lv;
+        this.nL = wl; this.nR = wr;
+      }
+      outL[i] = L; this.outL[idx] = 0;
+      if (outR) outR[i] = R;
       this.outR[idx] = 0;
     }
     this.pos = end;
@@ -268,7 +314,7 @@ if (typeof AudioWorkletProcessor !== 'undefined') {
       this.k = 0;
       this.port.onmessage = (ev) => {
         this.e.config(ev.data);
-        if (ev.data && (ev.data.type === 'range' || ev.data.type === 'voices')) this.port.postMessage({ type: 'lat', v: this.e.D / sampleRate });
+        if (ev.data && (ev.data.type === 'range' || ev.data.type === 'voices' || ev.data.type === 'timbre')) this.port.postMessage({ type: 'lat', v: this.e.D / sampleRate });
       };
       this.port.postMessage({ type: 'lat', v: this.e.D / sampleRate });
     }
@@ -279,7 +325,7 @@ if (typeof AudioWorkletProcessor !== 'undefined') {
       if (++this.k >= 8) {
         this.k = 0;
         const r = this.e.cur;
-        this.port.postMessage(r ? { type: 'r', raw: r.raw, out: r.out, tgt: r.tgt } : { type: 'r', raw: 0 });
+        this.port.postMessage(r ? { type: 'r', raw: r.raw, out: r.out, tgt: r.tgt, tr: r.tr } : { type: 'r', raw: 0 });
       }
       return true;
     }
