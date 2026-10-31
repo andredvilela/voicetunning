@@ -1,0 +1,9 @@
+[build]
+  publish = "site"
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Permissions-Policy = "microphone=(self)"
+    Cache-Control = "public, max-age=0, must-revalidate"
