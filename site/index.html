@@ -4,34 +4,42 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#F5F6F8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0E11" media="(prefers-color-scheme: dark)">
 <title>VoiceTunning</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap">
 <style>
-/* Layout: estúdio de bolso — presets e traço de afinação à esquerda, mesa (cantar, tom, ajustes) à direita; no celular empilha na ordem de uso */
+/* Layout: uma coluna central e calma — o palco (afinação ao vivo + Cantar) no topo; depois o som, o tom e a voz; o resto recolhido */
 :root{
-  --bg:#ECEFF2; --surface:#FFFFFF; --surface-2:#F3F5F8; --ink:#131A22; --muted:#5A6571; --line:#D2D8DF;
-  --accent:#0E7C76; --accent-soft:rgba(14,124,118,.12); --on-accent:#FFFFFF;
-  --live:#D42C5B; --live-soft:rgba(212,44,91,.12); --warn:#93560A; --warn-soft:rgba(176,108,20,.12);
+  --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#EFF1F4; --ink:#11161C; --muted:#68717C; --faint:#A1A8B1; --line:#E1E4E8;
+  --edge:rgba(17,22,28,.05); --shadow:0 1px 2px rgba(17,22,28,.04), 0 10px 30px rgba(17,22,28,.05);
+  --accent:#0F7A73; --accent-soft:rgba(15,122,115,.10); --accent-glow:rgba(15,122,115,.28); --on-accent:#FFFFFF;
+  --live:#E5484D; --live-soft:rgba(229,72,77,.12); --live-glow:rgba(229,72,77,.30);
+  --warn:#8A5A0B; --warn-soft:rgba(176,108,20,.10);
   --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
   --f-body:"Instrument Sans","Segoe UI",Roboto,system-ui,-apple-system,sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
-  --r:14px;
+  --r:22px;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0E1217; --surface:#161C23; --surface-2:#1D242D; --ink:#E3E8ED; --muted:#8B96A2; --line:#2A323C;
-    --accent:#43C6BD; --accent-soft:rgba(67,198,189,.14); --on-accent:#05211E;
-    --live:#FF5C86; --live-soft:rgba(255,92,134,.15); --warn:#E5A84A; --warn-soft:rgba(229,168,74,.13);
+    --bg:#0B0E11; --surface:#13171C; --surface-2:#1B2026; --ink:#E8ECF0; --muted:#8C95A0; --faint:#5A636D; --line:#262D35;
+    --edge:#1E242B; --shadow:none;
+    --accent:#3FC8BC; --accent-soft:rgba(63,200,188,.12); --accent-glow:rgba(63,200,188,.22); --on-accent:#04201D;
+    --live:#FF6369; --live-soft:rgba(255,99,105,.14); --live-glow:rgba(255,99,105,.25);
+    --warn:#E5A84A; --warn-soft:rgba(229,168,74,.12);
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0E1217; --surface:#161C23; --surface-2:#1D242D; --ink:#E3E8ED; --muted:#8B96A2; --line:#2A323C;
-  --accent:#43C6BD; --accent-soft:rgba(67,198,189,.14); --on-accent:#05211E;
-  --live:#FF5C86; --live-soft:rgba(255,92,134,.15); --warn:#E5A84A; --warn-soft:rgba(229,168,74,.13);
+  --bg:#0B0E11; --surface:#13171C; --surface-2:#1B2026; --ink:#E8ECF0; --muted:#8C95A0; --faint:#5A636D; --line:#262D35;
+  --edge:#1E242B; --shadow:none;
+  --accent:#3FC8BC; --accent-soft:rgba(63,200,188,.12); --accent-glow:rgba(63,200,188,.22); --on-accent:#04201D;
+  --live:#FF6369; --live-soft:rgba(255,99,105,.14); --live-glow:rgba(255,99,105,.25);
+  --warn:#E5A84A; --warn-soft:rgba(229,168,74,.12);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -39,403 +47,404 @@ html,body{margin:0}
 [hidden]{display:none!important}
 body{
   background:var(--bg); color:var(--ink); font:15px/1.5 var(--f-body);
-  padding-block:max(14px, env(safe-area-inset-top, 0px)) max(28px, env(safe-area-inset-bottom, 0px));
+  padding-block:max(14px, env(safe-area-inset-top, 0px)) max(40px, env(safe-area-inset-bottom, 0px));
   padding-left:max(16px, env(safe-area-inset-left, 0px));
   padding-right:max(16px, env(safe-area-inset-right, 0px));
   -webkit-tap-highlight-color:transparent;
 }
-.wrap{max-width:1180px; margin:0 auto; display:grid; gap:16px}
+.wrap{max-width:740px; margin:0 auto; display:grid; gap:20px}
 button,input,select{font:inherit; color:inherit}
-:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
 .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
-
-.top{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px}
-.brand{display:flex; align-items:center; gap:12px; min-width:0}
-.brand svg{flex:none}
-h1{font:800 26px/1 var(--f-display); letter-spacing:-.02em; margin:0}
-.sub{margin:4px 0 0; color:var(--muted); font-size:14px}
-.banner{background:var(--warn-soft); color:var(--warn); border:1px solid var(--warn); border-radius:10px; padding:10px 12px; font-size:14px; flex:1 1 320px}
-
-.grid{display:grid; gap:16px; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);
-  grid-template-areas:"presets side1" "graph side2"; align-items:start}
-.a-presets{grid-area:presets} .a-graph{grid-area:graph} .a-side1{grid-area:side1} .a-side2{grid-area:side2}
-.stack{display:grid; gap:16px; min-width:0}
-@media (max-width:880px){
-  .grid{grid-template-columns:minmax(0,1fr); grid-template-areas:"presets" "side1" "graph" "side2"}
-}
-
-.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:16px; display:grid; gap:14px; min-width:0}
-.label{font:600 11px/1.2 var(--f-body); letter-spacing:.09em; text-transform:uppercase; color:var(--muted)}
 .muted{color:var(--muted)} .small{font-size:13px}
-.row{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
-.head{display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap}
+small{color:var(--muted); font-size:12.5px; line-height:1.45}
 
-.btn{appearance:none; border:1px solid var(--line); background:var(--surface-2); border-radius:10px; padding:9px 14px; font-weight:600; cursor:pointer; min-height:42px}
-.btn:hover{border-color:var(--muted)}
-.btn.primary{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
-.btn.wide{width:100%}
-input[type=url], select{width:100%; min-width:0; border:1px solid var(--line); background:var(--surface-2); border-radius:10px; padding:9px 12px; min-height:42px}
+/* barra superior */
+.bar{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:4px 2px 0}
+.brand{display:flex; align-items:center; gap:10px; font:800 19px/1 var(--f-display); letter-spacing:-.02em}
+.brand svg{flex:none}
+.banner{background:var(--warn-soft); color:var(--warn); border-radius:14px; padding:12px 14px; font-size:14px}
 
-/* presets */
-.presets{display:grid; grid-template-columns:repeat(auto-fill, minmax(158px, 1fr)); gap:8px}
-.preset{appearance:none; text-align:left; cursor:pointer; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:12px 12px 11px; display:grid; gap:4px; align-content:start; min-height:104px; transition:border-color .12s, background .12s}
-.preset:hover{border-color:var(--muted)}
-.preset .pname{font:700 17px/1.15 var(--f-display); letter-spacing:-.01em}
-.preset .pdesc{font-size:13px; line-height:1.35; color:var(--muted)}
-.preset .ptag{justify-self:start; margin-top:4px; font:600 10.5px/1 var(--f-mono); letter-spacing:.02em; padding:4px 6px; border-radius:6px; background:var(--surface); border:1px solid var(--line); color:var(--muted)}
-.preset[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent)}
-.preset[aria-pressed="true"] .pname{color:var(--accent)}
-.preset[aria-pressed="true"] .ptag{border-color:var(--accent); color:var(--accent)}
-.pgroup{grid-column:1 / -1; display:flex; align-items:baseline; gap:10px; margin-top:8px; padding-bottom:2px; border-bottom:1px solid var(--line)}
-.pgroup:first-child{margin-top:0}
-.pgroup b{font:700 15px/1.2 var(--f-display)}
-.pgroup span{font-size:12.5px; color:var(--muted)}
-.now{font-size:14px; color:var(--muted)}
-.steps{display:flex; flex-wrap:wrap; gap:8px 20px; margin:0; padding:0; list-style:none; font-size:14px; color:var(--muted)}
-.steps li{display:flex; align-items:center; gap:8px}
-.steps b{display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%; background:var(--accent-soft); color:var(--accent); font:700 12px/1 var(--f-mono)}
-.rec{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
-.recdot{display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--live); margin-right:8px; vertical-align:-1px}
-#recBtn.on{background:var(--live-soft); border-color:var(--live); color:var(--live)}
-.rec-time{font:600 14px/1 var(--f-mono); color:var(--live); font-variant-numeric:tabular-nums}
-.take{display:grid; gap:10px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:12px}
+/* segmentado */
+.seg{display:inline-grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:2px; padding:3px; background:var(--surface-2); border-radius:999px}
+.seg button{appearance:none; border:0; background:transparent; border-radius:999px; padding:7px 14px; font-weight:600; font-size:14px; cursor:pointer; color:var(--muted); min-height:36px; white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.10)}
+.seg.full{display:grid; width:100%}
+
+/* palco */
+.stage{background:var(--surface); border:1px solid var(--edge); box-shadow:var(--shadow); border-radius:28px; padding:22px 20px 24px; display:grid; gap:18px}
+.readout{display:grid; grid-template-columns:1fr minmax(0,1.3fr) 1fr; align-items:end; gap:14px}
+.readout .lbl{display:block; font-size:12px; color:var(--muted); margin-bottom:4px}
+.readout b{display:block; font:800 32px/1 var(--f-display); letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+.readout > div:last-child{text-align:right}
+#rdTgt{color:var(--accent)}
+.cents-track{position:relative; height:6px; border-radius:6px; background:var(--surface-2)}
+.cents-track::after{content:""; position:absolute; left:50%; top:-5px; bottom:-5px; width:2px; margin-left:-1px; border-radius:2px; background:var(--accent)}
+#centsMark{position:absolute; top:50%; left:50%; width:12px; height:12px; margin:-6px 0 0 -6px; border-radius:50%; background:var(--ink); transition:left .08s linear}
+.cents-scale{display:flex; justify-content:space-between; font:500 10.5px/1 var(--f-mono); color:var(--faint); margin-top:8px}
+canvas{display:block; width:100%; height:190px; max-width:100%}
+
+.controls{display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:12px; margin-top:4px}
+.ctl{display:grid; justify-items:center; gap:6px}
+.ctl:first-child{justify-self:end} .ctl:last-child{justify-self:start}
+.ctl-label{font-size:12.5px; color:var(--muted); min-height:1.2em}
+.rnd{appearance:none; width:58px; height:58px; border-radius:50%; border:1px solid var(--line); background:var(--surface); cursor:pointer; display:grid; place-items:center; font:800 17px/1 var(--f-display); color:var(--ink)}
+.rnd:hover{border-color:var(--faint)}
+.recdot{display:block; width:16px; height:16px; border-radius:50%; background:var(--live); transition:border-radius .15s, transform .15s}
+#recBtn.on{border-color:var(--live); background:var(--live-soft)}
+#recBtn.on .recdot{border-radius:4px; transform:scale(.85)}
+#recText{color:var(--muted)}
+#recBtn.on + #recText{color:var(--live)}
+.sing{--lvl:0; appearance:none; border:0; cursor:pointer; width:124px; height:124px; border-radius:50%; background:var(--accent); color:var(--on-accent);
+  display:grid; place-content:center; justify-items:center; gap:6px; font:800 20px/1 var(--f-display); letter-spacing:-.01em;
+  box-shadow:0 0 0 calc(var(--lvl) * 18px) var(--accent-soft), 0 12px 34px var(--accent-glow); transition:background .2s, box-shadow .06s linear}
+.sing .dot{width:12px; height:12px; border-radius:50%; background:currentColor; opacity:.9}
+.sing.on{background:var(--live); color:#fff; box-shadow:0 0 0 calc(var(--lvl) * 18px) var(--live-soft), 0 12px 34px var(--live-glow)}
+.sing.on .dot{border-radius:3px}
+.under{display:grid; justify-items:center; gap:4px; text-align:center}
+.tip{margin:0; font-size:13.5px; color:var(--muted)}
+.lat{margin:0; font-size:12.5px; color:var(--faint)}
+.lat b{font:600 12.5px/1 var(--f-mono); color:var(--muted)}
+.rec-time{font:600 13px/1 var(--f-mono); color:var(--live); font-variant-numeric:tabular-nums}
+.msg{border-radius:14px; padding:12px 14px; font-size:14px; background:var(--warn-soft); color:var(--warn); overflow-wrap:anywhere}
+.take{display:grid; gap:10px; background:var(--surface-2); border-radius:18px; padding:14px}
 .take audio{width:100%}
-a.btn{display:inline-flex; align-items:center; text-decoration:none; color:inherit}
-.now b{color:var(--ink)}
 
-/* sliders */
-.field{display:grid; gap:6px}
-.field-top{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
-.field-top label, .flabel{font-weight:600}
-output{font:600 13px/1 var(--f-mono); color:var(--muted); font-variant-numeric:tabular-nums}
-.ends{display:flex; justify-content:space-between; font-size:12px; color:var(--muted)}
-input[type=range]{width:100%; accent-color:var(--accent); min-height:28px}
-input[type=range]:disabled{opacity:.4}
-small{color:var(--muted); font-size:12.5px; line-height:1.4}
+/* blocos */
+.block{background:var(--surface); border:1px solid var(--edge); box-shadow:var(--shadow); border-radius:var(--r); padding:20px; display:grid; gap:16px; min-width:0}
+.block-head{display:flex; justify-content:space-between; align-items:center; gap:12px}
+h2{margin:0; font:700 19px/1.2 var(--f-display); letter-spacing:-.01em}
+.sub{margin:2px 0 0; font-size:13.5px; color:var(--muted)}
+.row{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.btn{appearance:none; border:0; background:var(--surface-2); border-radius:999px; padding:9px 16px; font-weight:600; font-size:14px; cursor:pointer; min-height:40px; color:var(--ink)}
+.btn:hover{filter:brightness(.97)}
+.btn.primary{background:var(--ink); color:var(--bg)}
+.btn.ghost{background:transparent; color:var(--muted)}
+a.btn{display:inline-flex; align-items:center; text-decoration:none}
 
-.seg{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:4px; padding:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px}
-.seg button{appearance:none; border:0; background:transparent; border-radius:8px; padding:8px 6px; font-weight:600; cursor:pointer; color:var(--muted); min-height:38px}
-.seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink); box-shadow:0 0 0 1px var(--line), 0 1px 2px rgba(0,0,0,.08)}
+/* sons */
+.tabs{display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; margin:0 -4px; padding:0 4px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{appearance:none; border:0; background:transparent; padding:8px 14px; border-radius:999px; font-weight:600; font-size:14px; color:var(--muted); cursor:pointer; white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--ink); color:var(--bg)}
+.presets{display:grid; grid-template-columns:repeat(auto-fill, minmax(148px, 1fr)); gap:10px}
+.preset{appearance:none; text-align:left; cursor:pointer; background:var(--surface-2); border:1.5px solid transparent; border-radius:16px; padding:14px; display:grid; gap:4px; align-content:start; min-height:88px; transition:border-color .15s, background .15s}
+.preset:hover{border-color:var(--line)}
+.preset .pname{font:700 16px/1.2 var(--f-display); letter-spacing:-.01em}
+.preset .pdesc{font-size:12.5px; line-height:1.4; color:var(--muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.preset .ptag{display:none}
+.preset[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent)}
+.preset[aria-pressed="true"] .pname{color:var(--accent)}
 
 /* tom */
-.keyread{display:flex; align-items:center; gap:14px}
-.cifra{font:800 48px/0.9 var(--f-display); letter-spacing:-.03em; color:var(--accent); min-width:2.2ch}
-#keyPt{font-weight:600; font-size:17px}
-.keyboard{position:relative; height:96px; user-select:none}
-.key{position:absolute; top:0; appearance:none; cursor:pointer; padding:0 0 8px; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:3px; font:600 12px/1 var(--f-mono)}
-.key.w{height:100%; background:var(--surface); border:1px solid var(--line); border-radius:0 0 8px 8px; color:var(--muted); z-index:1}
-.key.b{height:60%; background:var(--ink); border:1px solid var(--ink); border-radius:0 0 6px 6px; color:var(--bg); z-index:2; font-size:10px}
-.key .pip{width:7px; height:7px; border-radius:50%; background:transparent}
+.cifra{font:800 44px/0.9 var(--f-display); letter-spacing:-.03em; color:var(--accent)}
+.keyboard{position:relative; height:86px; user-select:none}
+.key{position:absolute; top:0; appearance:none; cursor:pointer; padding:0 0 8px; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:4px; font:600 11.5px/1 var(--f-mono)}
+.key.w{height:100%; background:var(--surface); border:1px solid var(--line); border-radius:0 0 10px 10px; color:var(--faint); z-index:1}
+.key.b{height:58%; background:var(--ink); border:1px solid var(--ink); border-radius:0 0 7px 7px; color:var(--bg); z-index:2; font-size:9.5px}
+.key .pip{width:6px; height:6px; border-radius:50%; background:transparent}
 .key.in .pip{background:var(--accent)}
 .key.in.w{color:var(--ink)}
 .key.root.w{background:var(--accent-soft); border-color:var(--accent); color:var(--accent)}
 .key.root.b{background:var(--accent); border-color:var(--accent); color:var(--on-accent)}
-.key.root .pip{background:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
 .key.root.b .pip{background:var(--on-accent)}
-.detect{display:grid; gap:10px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:12px}
+.editor{display:grid; gap:14px; padding-top:4px}
+.detect{display:grid; gap:10px; background:var(--surface-2); border-radius:16px; padding:14px}
 .detect p{margin:0; font-size:14px}
-.progress{height:6px; background:var(--line); border-radius:6px; overflow:hidden}
+.progress{height:4px; background:var(--line); border-radius:4px; overflow:hidden}
 .progress span{display:block; height:100%; width:0; background:var(--accent)}
-.chroma{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:4px; align-items:end; height:76px}
-.chroma div{display:grid; grid-template-rows:1fr auto; gap:4px; height:100%; text-align:center; font:600 10px/1 var(--f-mono); color:var(--muted)}
-.chroma i{align-self:end; display:block; background:var(--accent); border-radius:3px 3px 0 0; min-height:2px; opacity:.85}
-.result{margin:0; padding:10px 12px; border-radius:10px; background:var(--accent-soft); font-size:14px}
-.msg{border-radius:10px; padding:10px 12px; font-size:14px; background:var(--warn-soft); color:var(--warn); overflow-wrap:anywhere}
+.chroma{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:4px; align-items:end; height:70px}
+.chroma div{display:grid; grid-template-rows:1fr auto; gap:4px; height:100%; text-align:center; font:600 9.5px/1 var(--f-mono); color:var(--muted)}
+.chroma i{align-self:end; display:block; background:var(--accent); border-radius:4px 4px 1px 1px; min-height:2px; opacity:.85}
+.result{margin:0; padding:12px 14px; border-radius:14px; background:var(--accent-soft); font-size:14px}
 
-/* cantar */
-.sing-btn{appearance:none; border:0; width:100%; min-height:68px; border-radius:16px; background:var(--accent); color:var(--on-accent); font:800 24px/1 var(--f-display); letter-spacing:-.01em; display:flex; align-items:center; justify-content:center; gap:12px; cursor:pointer}
-.sing-btn .dot{width:14px; height:14px; border-radius:50%; background:currentColor; opacity:.9}
-.sing-btn.on{background:var(--live); color:#fff}
-.sing-btn.on .dot{animation:pulse 1.2s ease-in-out infinite}
-@keyframes pulse{50%{transform:scale(.6); opacity:.5}}
-.tip{margin:0; font-size:14px; color:var(--muted)}
-.meter{height:8px; border-radius:8px; background:var(--surface-2); border:1px solid var(--line); overflow:hidden}
-.meter span{display:block; height:100%; width:0; background:linear-gradient(90deg, var(--accent) 70%, var(--live))}
-.stats{display:flex; justify-content:space-between; font-size:14px; color:var(--muted)}
-.stats b{font:600 14px/1.4 var(--f-mono); color:var(--ink); font-variant-numeric:tabular-nums}
+/* controles */
+.fields{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:18px 28px}
+.field{display:grid; gap:4px; min-width:0}
+.field-top{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+.field-top label, .flabel{font-weight:600; font-size:14.5px}
+output{font:500 12.5px/1 var(--f-mono); color:var(--muted); font-variant-numeric:tabular-nums}
+.ends{display:flex; justify-content:space-between; font-size:11.5px; color:var(--faint)}
+input[type=range]{--p:50%; -webkit-appearance:none; appearance:none; width:100%; height:28px; background:transparent; cursor:pointer; margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:4px; border-radius:4px; background:linear-gradient(to right, var(--accent) var(--p), var(--line) var(--p))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:20px; height:20px; margin-top:-8px; border-radius:50%; background:var(--surface); border:2px solid var(--accent); box-shadow:0 1px 4px rgba(0,0,0,.18)}
+input[type=range]::-moz-range-track{height:4px; border-radius:4px; background:var(--line)}
+input[type=range]::-moz-range-progress{height:4px; border-radius:4px; background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:16px; height:16px; border-radius:50%; background:var(--surface); border:2px solid var(--accent); box-shadow:0 1px 4px rgba(0,0,0,.18)}
+input[type=range]:disabled{opacity:.35; cursor:not-allowed}
+input[type=url], select{width:100%; min-width:0; border:0; background:var(--surface-2); border-radius:12px; padding:10px 14px; min-height:44px}
+.switch{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 14px; align-items:center; cursor:pointer}
+.switch span{font-weight:600; font-size:14.5px}
+.switch small{grid-column:1}
+.switch input{grid-row:1 / span 2; grid-column:2; appearance:none; -webkit-appearance:none; width:44px; height:26px; border-radius:999px; background:var(--line); position:relative; cursor:pointer; transition:background .15s; margin:0}
+.switch input::after{content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:transform .15s}
+.switch input:checked{background:var(--accent)}
+.switch input:checked::after{transform:translateX(18px)}
+.link{appearance:none; border:0; background:none; padding:0; color:var(--muted); font-size:13.5px; text-decoration:underline; text-underline-offset:3px; cursor:pointer; justify-self:start}
 
-/* gráfico */
-.readout{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:16px; align-items:end}
-.readout b{display:block; font:800 30px/1 var(--f-display); letter-spacing:-.02em; margin-top:4px; font-variant-numeric:tabular-nums}
-#rdTgt{color:var(--accent)}
-.readout > div:last-child{text-align:right}
-.cents-track{position:relative; height:10px; border-radius:10px; background:var(--surface-2); border:1px solid var(--line)}
-.cents-track::after{content:""; position:absolute; left:50%; top:-3px; bottom:-3px; width:2px; margin-left:-1px; background:var(--accent)}
-#centsMark{position:absolute; top:50%; left:50%; width:14px; height:14px; margin:-7px 0 0 -7px; border-radius:50%; background:var(--ink); transition:left .08s linear}
-.cents-scale{display:flex; justify-content:space-between; font:400 11px/1 var(--f-mono); color:var(--muted); margin-top:6px}
-canvas{display:block; width:100%; height:260px; max-width:100%; border-radius:10px; background:var(--surface-2); border:1px solid var(--line)}
-.legend{display:flex; flex-wrap:wrap; gap:6px 16px; font-size:13px; color:var(--muted); align-items:center}
-.legend span{display:inline-flex; align-items:center; gap:6px}
-.lg{display:inline-block; width:16px; height:3px; border-radius:2px}
-.lg.raw{background:var(--muted); height:4px; width:4px; border-radius:50%; box-shadow:6px 0 0 var(--muted), 12px 0 0 var(--muted); margin-right:12px}
-.lg.out{background:var(--accent)}
-.lg.grid{background:var(--line); height:1px}
+/* recolhidos */
+details.block{display:block; padding:0}
+details.block > summary{list-style:none; cursor:pointer; padding:18px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px}
+details.block > summary::-webkit-details-marker{display:none}
+details.block > summary::after{content:""; width:9px; height:9px; border-right:2px solid var(--faint); border-bottom:2px solid var(--faint); transform:rotate(45deg) translateY(-3px); transition:transform .15s; flex:none}
+details.block[open] > summary::after{transform:rotate(-135deg) translateY(-2px)}
+details.block > summary h2{font-size:17px}
+details.block > summary .sub{margin:0}
+details.block > .inner{display:grid; gap:18px; padding:2px 20px 20px}
+.sumtext{display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px}
 
-.switch{display:grid; grid-template-columns:auto minmax(0,1fr); gap:2px 10px; align-items:center; cursor:pointer}
-.switch input{grid-row:span 2; width:20px; height:20px; accent-color:var(--accent)}
-.switch span{font-weight:600}
-details.card{display:block}
-details.card > .inner{display:grid; gap:16px; margin-top:14px}
-summary{cursor:pointer; font-weight:600; list-style-position:inside}
-summary .opt{font-weight:400; color:var(--muted); font-size:13px}
-
-/* youtube (opcional) */
+/* youtube */
 .url{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px}
-.screen{position:relative; aspect-ratio:16/9; max-width:100%; background:var(--surface-2); border-radius:10px; overflow:hidden; border:1px solid var(--line)}
+.screen{position:relative; aspect-ratio:16/9; max-width:100%; background:var(--surface-2); border-radius:16px; overflow:hidden}
 .screen iframe, #player{position:absolute; inset:0; width:100%; height:100%; border:0}
-.empty{position:absolute; inset:0; display:grid; place-content:center; text-align:center; gap:6px; padding:16px; color:var(--muted)}
-.empty b{font:600 18px/1.2 var(--f-display); color:var(--ink)}
-footer{color:var(--muted); font-size:13px; text-align:center; padding-top:4px}
+.empty{position:absolute; inset:0; display:grid; place-content:center; text-align:center; gap:6px; padding:16px; color:var(--muted); font-size:14px}
+.empty b{font:700 17px/1.2 var(--f-display); color:var(--ink)}
+.stats{display:flex; justify-content:space-between; font-size:13.5px; color:var(--muted)}
+.stats b{font:600 13px/1.4 var(--f-mono); color:var(--ink)}
+footer{color:var(--faint); font-size:12.5px; text-align:center; padding-top:6px}
 
-@media (max-width:480px){
-  .presets{grid-template-columns:repeat(2, minmax(0,1fr))}
-  .preset{min-height:96px}
+@media (max-width:520px){
   .readout{grid-template-columns:1fr 1fr; gap:12px}
   .readout .cents{grid-column:1 / -1; grid-row:2}
-  .cifra{font-size:42px}
-  canvas{height:220px}
+  .readout b{font-size:28px}
+  .sing{width:112px; height:112px}
+  .presets{grid-template-columns:repeat(2, minmax(0,1fr))}
+  .cifra{font-size:38px}
+  canvas{height:160px}
 }
 @media (prefers-reduced-motion: reduce){
-  .sing-btn.on .dot{animation:none}
-  #centsMark{transition:none}
-  .preset{transition:none}
+  #centsMark, .preset, .sing, .recdot, .switch input, .switch input::after{transition:none}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <header class="top">
+  <header class="bar">
     <div class="brand">
-      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
-        <rect x="1" y="1" width="38" height="38" rx="10" fill="var(--accent)"/>
-        <path d="M7 27 C10 21, 12 17, 15 19 S19 25, 21 20" fill="none" stroke="var(--on-accent)" stroke-width="2.2" stroke-linecap="round" opacity=".55"/>
-        <path d="M21 20 H26 V14 H33" fill="none" stroke="var(--on-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="1" y="1" width="38" height="38" rx="12" fill="var(--accent)"/>
+        <path d="M7 27 C10 21, 12 17, 15 19 S19 25, 21 20" fill="none" stroke="var(--on-accent)" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>
+        <path d="M21 20 H26 V14 H33" fill="none" stroke="var(--on-accent)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <div>
-        <h1>VoiceTunning</h1>
-        <p class="sub">Escolha um som, aperte Cantar e ouça sua voz afinada no tom.</p>
+      VoiceTunning
+    </div>
+    <div class="seg" id="outSeg" role="group" aria-label="Saída de áudio">
+      <button type="button" data-v="fone">Fone</button>
+      <button type="button" data-v="caixa">Caixa</button>
+    </div>
+  </header>
+  <div id="ctxBanner" class="banner" hidden></div>
+
+  <!-- PALCO -->
+  <section class="stage" aria-label="Cantar">
+    <div class="readout">
+      <div><span class="lbl">Sua voz</span><b id="rdRaw">—</b></div>
+      <div class="cents">
+        <div class="cents-track"><span id="centsMark"></span></div>
+        <div class="cents-scale"><span>−50</span><span>na nota</span><span>+50</span></div>
+      </div>
+      <div><span class="lbl">Afinado para</span><b id="rdTgt">—</b></div>
+    </div>
+    <canvas id="graph" role="img" aria-label="Afinação ao vivo: pontos são sua voz, a linha é a voz afinada, as linhas horizontais são as notas do tom"></canvas>
+    <div class="controls">
+      <div class="ctl">
+        <button class="rnd" id="recBtn" type="button" aria-label="Gravar"><span class="recdot"></span></button>
+        <span class="ctl-label" id="recText">Gravar</span>
+      </div>
+      <button class="sing" id="singBtn" type="button"><span class="dot"></span><span id="singText">Cantar</span></button>
+      <div class="ctl">
+        <button class="rnd" id="keyJump" type="button" aria-label="Tom da música"><span id="keyMini">Am</span></button>
+        <span class="ctl-label">Tom</span>
       </div>
     </div>
-    <div id="ctxBanner" class="banner" hidden></div>
-  </header>
-  <ol class="steps" aria-label="Como usar">
-    <li><b>1</b>Escolha um som</li>
-    <li><b>2</b>Acerte o tom da música</li>
-    <li><b>3</b>Ponha o fone e aperte Cantar</li>
-    <li><b>4</b>Grave e ouça como ficou</li>
-  </ol>
+    <div class="under">
+      <span class="rec-time" id="recTime"></span>
+      <p class="tip" id="outTip"></p>
+      <p class="lat">Atraso da voz <b id="latency">—</b></p>
+    </div>
+    <div id="singMsg" class="msg" hidden></div>
+    <div class="take" id="takeBox" hidden>
+      <div class="block-head"><b>Sua gravação</b><button class="link" id="takeDel" type="button">Apagar</button></div>
+      <audio id="take" controls preload="auto"></audio>
+      <div class="row"><a class="btn" id="takeDl" href="#" download>Baixar</a><small>Ouvindo a gravação, você escuta a voz nova inteira.</small></div>
+    </div>
+  </section>
 
-  <main class="grid">
+  <!-- SOM -->
+  <section class="block" aria-labelledby="pTitle">
+    <div class="block-head">
+      <h2 id="pTitle">Som</h2>
+      <span class="muted small" id="presetNow"></span>
+    </div>
+    <div class="tabs" id="groupTabs" role="tablist" aria-label="Categorias"></div>
+    <div class="presets" id="presets" role="group" aria-label="Sons de voz"></div>
+  </section>
 
-    <!-- PRESETS -->
-    <section class="card a-presets" aria-labelledby="pTitle">
-      <div class="head">
-        <span class="label" id="pTitle">Som da voz</span>
-        <span class="now" id="presetNow"></span>
+  <!-- TOM -->
+  <section class="block" id="keyBlock" aria-labelledby="kTitle">
+    <div class="block-head">
+      <div>
+        <h2 id="kTitle">Tom da música</h2>
+        <p class="sub"><span id="keyPt">Lá menor</span> · <span id="keyRel"></span></p>
       </div>
-      <div class="presets" id="presets" role="group" aria-label="Presets de voz"></div>
-    </section>
-
-    <!-- CANTAR + TOM -->
-    <div class="stack a-side1">
-      <section class="card" aria-labelledby="sTitle">
-        <span class="label" id="sTitle">Saída de áudio</span>
-        <div class="seg" id="outSeg" role="group" aria-label="Saída de áudio">
-          <button type="button" data-v="fone">Fone</button>
-          <button type="button" data-v="caixa">Caixa de som</button>
-        </div>
-        <p class="tip" id="outTip"></p>
-        <button class="sing-btn" id="singBtn" type="button"><span class="dot"></span><span id="singText">Cantar</span></button>
-        <div class="meter" aria-hidden="true"><span id="meterBar"></span></div>
-        <div class="rec">
-          <button class="btn" id="recBtn" type="button"><span class="recdot"></span><span id="recText">Gravar</span></button>
-          <span class="rec-time" id="recTime"></span>
-        </div>
-        <div class="take" id="takeBox" hidden>
-          <span class="label">Sua gravação</span>
-          <audio id="take" controls preload="auto"></audio>
-          <div class="row"><a class="btn" id="takeDl" href="#" download>Baixar</a><button class="btn" id="takeDel" type="button">Apagar</button></div>
-          <small>Ao ouvir a gravação, você escuta a voz nova inteira, sem a sua voz natural por dentro da cabeça.</small>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="lowLat">
-          <span>Baixa latência</span>
-          <small>Corta o atraso do motor quase pela metade. Notas muito graves (abaixo de Si 2) passam sem afinação.</small>
-        </label>
-        <div class="stats"><span>Atraso estimado da voz</span><b id="latency">—</b></div>
-        <div class="stats small" id="latSplit" hidden><span>Sistema e navegador <b id="latSys">—</b></span><span>Motor <b id="latEng">—</b></span></div>
-        <div id="singMsg" class="msg" hidden></div>
-      </section>
-
-      <section class="card" aria-labelledby="kTitle">
-        <span class="label" id="kTitle">Tom da música</span>
-        <div class="keyread">
-          <div class="cifra" id="keyCifra">Am</div>
-          <div>
-            <div id="keyPt">Lá menor</div>
-            <div class="muted small" id="keyRel"></div>
-          </div>
-        </div>
-        <div class="keyboard" id="keyboard" role="group" aria-label="Escolha a tônica"></div>
-        <div class="seg" id="modeSeg" role="group" aria-label="Escala">
+      <div class="cifra" id="keyCifra">Am</div>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="detectBtn" type="button">Detectar pelo microfone</button>
+      <button class="btn" id="refBtn" type="button">Ouvir referência</button>
+      <button class="btn ghost" id="keyEditBtn" type="button" aria-expanded="false" aria-controls="keyEditor">Escolher</button>
+    </div>
+    <div class="detect" id="detectPanel" hidden>
+      <p id="detectText">Ouvindo a música…</p>
+      <div class="progress"><span id="detectBar"></span></div>
+      <div class="chroma" id="chroma" aria-hidden="true"></div>
+    </div>
+    <p class="result" id="detectResult" hidden></p>
+    <div class="editor" id="keyEditor" hidden>
+      <div class="keyboard" id="keyboard" role="group" aria-label="Escolha a tônica"></div>
+      <div class="row">
+        <div class="seg" id="modeSeg" role="group" aria-label="Escala" style="flex:1">
           <button type="button" data-v="major">Maior</button>
           <button type="button" data-v="minor">Menor</button>
           <button type="button" data-v="chromatic">Cromático</button>
         </div>
-        <div class="row">
-          <button class="btn" id="semiDown" type="button" aria-label="Descer meio tom">−½ tom</button>
-          <button class="btn" id="semiUp" type="button" aria-label="Subir meio tom">+½ tom</button>
-          <button class="btn" id="refBtn" type="button" style="flex:1">Ouvir referência</button>
-        </div>
-        <button class="btn wide" id="detectBtn" type="button">Detectar tom pelo microfone</button>
-        <div class="detect" id="detectPanel" hidden>
-          <p id="detectText">Ouvindo a música…</p>
-          <div class="progress"><span id="detectBar"></span></div>
-          <div class="chroma" id="chroma" aria-hidden="true"></div>
-        </div>
-        <p class="result" id="detectResult" hidden></p>
-      </section>
+        <button class="btn" id="semiDown" type="button" aria-label="Descer meio tom">−½</button>
+        <button class="btn" id="semiUp" type="button" aria-label="Subir meio tom">+½</button>
+      </div>
     </div>
+  </section>
 
-    <!-- GRÁFICO -->
-    <section class="card a-graph" aria-labelledby="gTitle">
-      <span class="label sr" id="gTitle">Afinação ao vivo</span>
-      <div class="readout">
-        <div><span class="label">Sua voz</span><b id="rdRaw">—</b></div>
-        <div class="cents">
-          <div class="cents-track"><span id="centsMark"></span></div>
-          <div class="cents-scale"><span>−50</span><span>na nota</span><span>+50 cents</span></div>
-        </div>
-        <div><span class="label">Afinado para</span><b id="rdTgt">—</b></div>
+  <!-- SUA VOZ -->
+  <section class="block" aria-labelledby="zTitle">
+    <div class="block-head">
+      <h2 id="zTitle">Sua voz</h2>
+      <button class="link" id="resetPreset" type="button">Voltar ao padrão</button>
+    </div>
+    <div class="fields">
+      <div class="field">
+        <div class="field-top"><label for="tr">Tom da voz</label><output id="trOut">original</output></div>
+        <input type="range" id="tr" min="-12" max="12" step="1">
+        <div class="ends"><span>Mais grave</span><span>Mais aguda</span></div>
       </div>
-      <canvas id="graph" role="img" aria-label="Gráfico da afinação: pontos são sua voz, a linha é a voz afinada, as linhas horizontais são as notas do tom"></canvas>
-      <div class="legend">
-        <span><i class="lg raw"></i>Sua voz</span>
-        <span><i class="lg out"></i>Voz afinada</span>
-        <span><i class="lg grid"></i>Notas do tom</span>
+      <div class="field">
+        <div class="field-top"><label for="timbre">Timbre</label><output id="timbreOut">original</output></div>
+        <input type="range" id="timbre" min="70" max="135" step="1">
+        <div class="ends"><span>Corpo grande</span><span>Corpo pequeno</span></div>
       </div>
-    </section>
+      <div class="field">
+        <div class="field-top"><label for="vib">Vibrato</label><output id="vibOut">leve</output></div>
+        <input type="range" id="vib" min="0" max="60" step="1">
+        <div class="ends"><span>Nenhum</span><span>Forte</span></div>
+      </div>
+      <div class="field">
+        <div class="field-top"><label for="breath">Sopro</label><output id="breathOut">nenhum</output></div>
+        <input type="range" id="breath" min="0" max="60" step="1">
+        <div class="ends"><span>Nenhum</span><span>Muito</span></div>
+      </div>
+      <div class="field">
+        <div class="field-top"><label for="corr">Correção</label><output id="corrOut">Pop</output></div>
+        <input type="range" id="corr" min="0" max="100" step="1">
+        <div class="ends"><span>Natural</span><span>Robô</span></div>
+      </div>
+      <div class="field">
+        <div class="field-top"><label for="voiceVol">Volume da voz</label><output id="voiceVolOut">85</output></div>
+        <input type="range" id="voiceVol" min="0" max="150" step="1">
+        <div class="ends"><span>Baixo</span><span>Alto</span></div>
+      </div>
+    </div>
+  </section>
 
-    <!-- AJUSTES + YOUTUBE -->
-    <div class="stack a-side2">
-      <section class="card" aria-labelledby="zTitle">
-        <div class="head"><span class="label" id="zTitle">Sua voz</span><span class="now small">O preset escolhe, você ajusta</span></div>
-        <div class="field">
-          <div class="field-top"><label for="tr">Tom da voz</label><output id="trOut">original</output></div>
-          <input type="range" id="tr" min="-12" max="12" step="1">
-          <div class="ends"><span>Mais grave</span><span>Mais aguda</span></div>
+  <!-- MISTURA -->
+  <details class="block">
+    <summary><span class="sumtext"><h2>Mistura</h2><span class="sub">segunda voz, efeitos, afinação</span></span></summary>
+    <div class="inner">
+      <div class="field" id="harmField">
+        <span class="flabel">Segunda voz</span>
+        <div class="seg full" id="harmSeg" role="group" aria-label="Segunda voz">
+          <button type="button" data-v="up">Acima de você</button>
+          <button type="button" data-v="down">Abaixo de você</button>
         </div>
-        <div class="field">
-          <div class="field-top"><label for="timbre">Timbre</label><output id="timbreOut">original</output></div>
-          <input type="range" id="timbre" min="70" max="135" step="1">
-          <div class="ends"><span>Corpo grande</span><span>Corpo pequeno</span></div>
-        </div>
-        <div class="field">
-          <div class="field-top"><label for="vib">Vibrato</label><output id="vibOut">leve</output></div>
-          <input type="range" id="vib" min="0" max="60" step="1">
-          <div class="ends"><span>Nenhum</span><span>Forte</span></div>
-        </div>
-        <div class="field">
-          <div class="field-top"><label for="breath">Sopro</label><output id="breathOut">nenhum</output></div>
-          <input type="range" id="breath" min="0" max="60" step="1">
-          <div class="ends"><span>Nenhum</span><span>Muito</span></div>
-        </div>
-        <div class="field">
-          <div class="field-top"><label for="corr">Correção</label><output id="corrOut">Pop</output></div>
-          <input type="range" id="corr" min="0" max="100" step="1">
-          <div class="ends"><span>Natural</span><span>Robô</span></div>
-        </div>
-        <button class="btn" id="resetPreset" type="button">Voltar ao padrão do preset</button>
-      </section>
-
-      <section class="card" aria-labelledby="mTitle">
-        <span class="label" id="mTitle">Mistura</span>
+      </div>
+      <div class="fields">
         <div class="field">
           <div class="field-top"><label for="extraVol">Vozes extras</label><output id="extraVolOut">100</output></div>
           <input type="range" id="extraVol" min="0" max="150" step="1">
           <small id="extraHint">Volume da segunda voz, do coral ou da oitava.</small>
         </div>
-        <div class="field" id="harmField">
-          <span class="flabel">Segunda voz</span>
-          <div class="seg" id="harmSeg" role="group" aria-label="Segunda voz">
-            <button type="button" data-v="up">Acima de você</button>
-            <button type="button" data-v="down">Abaixo de você</button>
-          </div>
-          <small>Na dupla, quem faz a voz mais aguda? Troque e ouça a diferença.</small>
-        </div>
         <div class="field">
-          <div class="field-top"><label for="fxAmt">Efeitos</label><output id="fxAmtOut">100</output></div>
+          <div class="field-top"><label for="fxAmt">Eco e reverb</label><output id="fxAmtOut">100</output></div>
           <input type="range" id="fxAmt" min="0" max="150" step="1">
-          <small>Quantidade de eco e reverb do preset.</small>
+          <small>Quanto de ambiente o som tem.</small>
         </div>
-        <div class="field">
-          <div class="field-top"><label for="voiceVol">Volume geral da voz</label><output id="voiceVolOut">85</output></div>
-          <input type="range" id="voiceVol" min="0" max="150" step="1">
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="tuneOn">
-          <span>Afinação ligada</span>
-          <small>Desligue por um instante para comparar com a sua voz original.</small>
-        </label>
-      </section>
-
-      <details class="card" id="ytBox">
-        <summary>Tocar música do YouTube <span class="opt">(opcional)</span></summary>
-        <div class="inner">
-          <form class="url" id="urlForm">
-            <label for="url" class="sr">Link do YouTube</label>
-            <input id="url" type="url" inputmode="url" autocomplete="off" placeholder="Cole o link do vídeo">
-            <button class="btn primary" id="loadBtn" type="submit">Carregar</button>
-          </form>
-          <div class="screen">
-            <div id="player"></div>
-            <div class="empty" id="screenEmpty">
-              <b>Cole um link do YouTube</b>
-              <span>Ou toque a música em outro app ou aparelho.</span>
-            </div>
-          </div>
-          <div id="videoMsg" class="msg" hidden></div>
-          <div class="field">
-            <div class="field-top"><label for="videoVol">Volume do vídeo</label><output id="videoVolOut">70</output></div>
-            <input type="range" id="videoVol" min="0" max="100" step="1">
-          </div>
-        </div>
-      </details>
-
-      <details class="card">
-        <summary>Ajustes avançados</summary>
-        <div class="inner">
-          <div class="field">
-            <label class="flabel" for="micSel">Microfone</label>
-            <select id="micSel"><option value="">Padrão do sistema</option></select>
-            <small>A lista completa aparece depois que você permitir o microfone.</small>
-          </div>
-          <div class="field">
-            <span class="flabel">Faixa da voz</span>
-            <div class="seg" id="rangeSeg" role="group" aria-label="Faixa da voz">
-              <button type="button" data-v="grave">Grave</button>
-              <button type="button" data-v="ampla">Ampla</button>
-              <button type="button" data-v="aguda">Aguda</button>
-            </div>
-            <small>“Aguda” é o modo baixa latência. “Grave” alcança notas mais baixas, com um pouco mais de atraso.</small>
-          </div>
-          <div class="field">
-            <div class="field-top"><label for="gate">Filtro de ruído</label><output id="gateOut">−52 dB</output></div>
-            <input type="range" id="gate" min="-72" max="-28" step="1">
-            <small>Mais à direita ignora mais ruído de fundo. Se a voz cortar no começo das frases, mova para a esquerda.</small>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="aec">
-            <span>Cancelamento de eco do navegador</span>
-            <small>Pode ajudar na caixa de som, mas no Android costuma piorar a qualidade da voz.</small>
-          </label>
-        </div>
-      </details>
+      </div>
+      <label class="switch">
+        <span>Afinação ligada</span>
+        <input type="checkbox" id="tuneOn">
+        <small>Desligue por um instante para comparar com a sua voz original.</small>
+      </label>
     </div>
-  </main>
+  </details>
 
-  <footer>A voz é processada no seu aparelho. Nada é gravado nem enviado.</footer>
+  <!-- YOUTUBE -->
+  <details class="block" id="ytBox">
+    <summary><span class="sumtext"><h2>YouTube</h2><span class="sub">opcional</span></span></summary>
+    <div class="inner">
+      <form class="url" id="urlForm">
+        <label for="url" class="sr">Link do YouTube</label>
+        <input id="url" type="url" inputmode="url" autocomplete="off" placeholder="Cole o link do vídeo">
+        <button class="btn primary" id="loadBtn" type="submit">Carregar</button>
+      </form>
+      <div class="screen">
+        <div id="player"></div>
+        <div class="empty" id="screenEmpty"><b>Cole um link do YouTube</b><span>Ou toque a música em outro app ou aparelho.</span></div>
+      </div>
+      <div id="videoMsg" class="msg" hidden></div>
+      <div class="field">
+        <div class="field-top"><label for="videoVol">Volume do vídeo</label><output id="videoVolOut">70</output></div>
+        <input type="range" id="videoVol" min="0" max="100" step="1">
+      </div>
+    </div>
+  </details>
+
+  <!-- AVANÇADO -->
+  <details class="block">
+    <summary><span class="sumtext"><h2>Avançado</h2><span class="sub">atraso, microfone, ruído</span></span></summary>
+    <div class="inner">
+      <label class="switch">
+        <span>Baixa latência</span>
+        <input type="checkbox" id="lowLat">
+        <small>Corta o atraso do processamento quase pela metade. Notas muito graves (abaixo de Si 2) passam sem afinação.</small>
+      </label>
+      <div class="stats" id="latSplit" hidden><span>Sistema e navegador <b id="latSys">—</b></span><span>Processamento <b id="latEng">—</b></span></div>
+      <div class="field">
+        <label class="flabel" for="micSel">Microfone</label>
+        <select id="micSel"><option value="">Padrão do sistema</option></select>
+        <small>A lista completa aparece depois que você permitir o microfone.</small>
+      </div>
+      <div class="field">
+        <span class="flabel">Faixa da voz</span>
+        <div class="seg full" id="rangeSeg" role="group" aria-label="Faixa da voz">
+          <button type="button" data-v="grave">Grave</button>
+          <button type="button" data-v="ampla">Ampla</button>
+          <button type="button" data-v="aguda">Aguda</button>
+        </div>
+        <small>“Aguda” é o modo baixa latência. “Grave” alcança notas mais baixas, com um pouco mais de atraso.</small>
+      </div>
+      <div class="field">
+        <div class="field-top"><label for="gate">Filtro de ruído</label><output id="gateOut">−52 dB</output></div>
+        <input type="range" id="gate" min="-72" max="-28" step="1">
+        <small>Mais à direita ignora mais ruído de fundo. Se a voz cortar no começo das frases, mova para a esquerda.</small>
+      </div>
+      <label class="switch">
+        <span>Cancelamento de eco do navegador</span>
+        <input type="checkbox" id="aec">
+        <small>Pode ajudar na caixa de som, mas no Android costuma piorar a qualidade da voz.</small>
+      </label>
+    </div>
+  </details>
+
+  <footer>A voz é processada no seu aparelho. Nada é enviado.</footer>
 </div>
 
 <!-- Cópia embutida do motor (usada se voice-tuner.js não estiver ao lado) -->
@@ -882,18 +891,19 @@ if (location.protocol === 'file:' || !window.isSecureContext) {
 
 /* ---------- grade de presets ---------- */
 const presetBox = $('#presets');
+let curGroup = (PRESETS.find((p) => p.id === S.preset) || PRESETS[0]).group;
+const tabsEl = $('#groupTabs');
 GROUPS.forEach((gr) => {
-  const h = document.createElement('div');
-  h.className = 'pgroup';
-  h.innerHTML = '<b></b><span></span>';
-  h.querySelector('b').textContent = gr.name;
-  h.querySelector('span').textContent = gr.note;
-  presetBox.appendChild(h);
-  PRESETS.filter((p) => p.group === gr.id).forEach(addPresetButton);
+  const t = document.createElement('button');
+  t.type = 'button'; t.className = 'tab'; t.dataset.g = gr.id;
+  t.setAttribute('role', 'tab'); t.title = gr.note; t.textContent = gr.name;
+  t.addEventListener('click', () => { curGroup = gr.id; renderPresets(); });
+  tabsEl.appendChild(t);
 });
+PRESETS.forEach(addPresetButton);
 function addPresetButton(p) {
   const b = document.createElement('button');
-  b.type = 'button'; b.className = 'preset'; b.dataset.id = p.id;
+  b.type = 'button'; b.className = 'preset'; b.dataset.id = p.id; b.dataset.g = p.group;
   b.innerHTML = '<span class="pname"></span><span class="pdesc"></span><span class="ptag"></span>';
   b.querySelector('.pname').textContent = p.name;
   b.querySelector('.pdesc').textContent = p.desc;
@@ -902,12 +912,16 @@ function addPresetButton(p) {
   presetBox.appendChild(b);
 }
 function renderPresets() {
-  presetBox.querySelectorAll('.preset').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === S.preset)));
+  presetBox.querySelectorAll('.preset').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.id === S.preset));
+    b.hidden = b.dataset.g !== curGroup;
+  });
+  tabsEl.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.g === curGroup)));
   const p = presetById(S.preset);
-  $('#presetNow').innerHTML = 'Agora: <b></b>';
-  $('#presetNow b').textContent = p.name;
+  $('#presetNow').textContent = p.name;
   const hasExtra = p.voices.length > 1;
   $('#extraVol').disabled = !hasExtra;
+  $('#extraVol').closest('.field').style.opacity = hasExtra ? '' : '.6';
   $('#extraHint').textContent = hasExtra ? 'Volume da segunda voz, do coral, da dobra ou da oitava.' : 'Este preset não tem vozes extras.';
   $('#harmField').hidden = !hasHarm(p);
   syncSeg('#harmSeg', S.harmDir);
@@ -961,7 +975,16 @@ function renderKey() {
     $('#keyRel').textContent = 'Mesmas notas de ' + NOTES_C[rel] + ' (' + NOTES_PT[rel] + ' maior)';
   }
   syncSeg('#modeSeg', S.mode);
+  $('#keyMini').textContent = chrom ? '12' : S.mode === 'major' ? NOTES_C[S.key] : MINOR_C[S.key];
 }
+$('#keyEditBtn').addEventListener('click', (e) => {
+  const ed = $('#keyEditor'); ed.hidden = !ed.hidden;
+  e.currentTarget.setAttribute('aria-expanded', String(!ed.hidden));
+  e.currentTarget.textContent = ed.hidden ? 'Escolher' : 'Fechar';
+});
+$('#keyJump').addEventListener('click', () => {
+  $('#keyBlock').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+});
 function keyChanged() { save(); renderKey(); sendTuner(); drawGraph(); }
 $('#semiUp').addEventListener('click', () => { S.key = (S.key + 1) % 12; keyChanged(); });
 $('#semiDown').addEventListener('click', () => { S.key = (S.key + 11) % 12; keyChanged(); });
@@ -985,8 +1008,8 @@ $('#lowLat').addEventListener('change', (e) => {
 });
 function renderOutTip() {
   $('#outTip').textContent = S.output === 'fone'
-    ? 'Use fone com fio. Fone Bluetooth atrasa a voz e atrapalha.'
-    : 'Caixa ligada por cabo. Fique atrás ou ao lado dela e comece com o volume baixo para evitar microfonia.';
+    ? 'Use fone com fio. Bluetooth atrasa a voz.'
+    : 'Caixa por cabo. Fique atrás dela e comece com volume baixo.';
 }
 
 /* ---------- sliders ---------- */
@@ -994,9 +1017,10 @@ const corrLabel = (v) => v < 35 ? 'Natural' : v < 80 ? 'Pop' : 'Robô';
 const ranges = [];
 function bindRange(id, key, fmt, cb) {
   const el = $('#' + id), out = $('#' + id + 'Out');
-  const sync = () => { el.value = S[key]; if (out) out.textContent = fmt(S[key]); };
+  const fill = () => { const mn = Number(el.min), mx = Number(el.max); el.style.setProperty('--p', ((Number(el.value) - mn) / (mx - mn) * 100) + '%'); };
+  const sync = () => { el.value = S[key]; if (out) out.textContent = fmt(S[key]); fill(); };
   sync(); ranges.push(sync);
-  el.addEventListener('input', () => { S[key] = Number(el.value); if (out) out.textContent = fmt(S[key]); if (cb) cb(); });
+  el.addEventListener('input', () => { S[key] = Number(el.value); if (out) out.textContent = fmt(S[key]); fill(); if (cb) cb(); });
   el.addEventListener('change', save);
 }
 function syncRanges() { ranges.forEach((f) => f()); }
@@ -1032,7 +1056,7 @@ async function ensureCtx() {
 async function loadWorklet() {
   const src = $('#worklet-src').textContent;
   const tries = [
-    () => 'voice-tuner.js?v=5',
+    () => 'voice-tuner.js?v=6',
     () => URL.createObjectURL(new Blob([src], { type: 'text/javascript' })),
     () => 'data:text/javascript;base64,' + btoa(unescape(encodeURIComponent(src)))
   ];
@@ -1225,7 +1249,7 @@ function stopSinging() {
   if (micSrc) { try { micSrc.disconnect(); } catch (e) {} micSrc = null; }
   if (micStream) { micStream.getTracks().forEach((t) => t.stop()); micStream = null; }
   applyAudio(); renderSing();
-  $('#meterBar').style.width = '0';
+  $('#singBtn').style.setProperty('--lvl', '0');
 }
 async function restartMic() { stopSinging(); await startSinging(); }
 function renderSing() {
@@ -1246,7 +1270,8 @@ const mmss = (ms) => { const t = Math.floor(ms / 1000); return Math.floor(t / 60
 function renderRec() {
   const on = !!rec;
   $('#recBtn').classList.toggle('on', on);
-  $('#recText').textContent = on ? 'Parar gravação' : 'Gravar';
+  $('#recText').textContent = on ? 'Parar' : 'Gravar';
+  $('#recBtn').setAttribute('aria-label', on ? 'Parar gravação' : 'Gravar');
   const el = on ? performance.now() - recT0 : 0;
   $('#recTime').textContent = on ? mmss(el) : '';
   if (on && el > REC_MAX) stopRec();
@@ -1387,7 +1412,7 @@ function loop() {
       N.meter.getFloatTimeDomainData(buf);
       let e = 0; for (let i = 0; i < buf.length; i++) e += buf[i] * buf[i];
       const db = 10 * Math.log10(e / buf.length + 1e-12);
-      $('#meterBar').style.width = Math.max(0, Math.min(100, (db + 60) / 60 * 100)) + '%';
+      $('#singBtn').style.setProperty('--lvl', Math.max(0, Math.min(1, (db + 54) / 48)).toFixed(3));
       raf = requestAnimationFrame(tick);
     }
   };
