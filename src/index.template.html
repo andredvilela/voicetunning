@@ -86,6 +86,10 @@ input[type=url], select{width:100%; min-width:0; border:1px solid var(--line); b
 .preset[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent)}
 .preset[aria-pressed="true"] .pname{color:var(--accent)}
 .preset[aria-pressed="true"] .ptag{border-color:var(--accent); color:var(--accent)}
+.pgroup{grid-column:1 / -1; display:flex; align-items:baseline; gap:10px; margin-top:8px; padding-bottom:2px; border-bottom:1px solid var(--line)}
+.pgroup:first-child{margin-top:0}
+.pgroup b{font:700 15px/1.2 var(--f-display)}
+.pgroup span{font-size:12.5px; color:var(--muted)}
 .now{font-size:14px; color:var(--muted)}
 .now b{color:var(--ink)}
 
@@ -301,6 +305,14 @@ footer{color:var(--muted); font-size:13px; text-align:center; padding-top:4px}
           <input type="range" id="extraVol" min="0" max="150" step="1">
           <small id="extraHint">Volume da segunda voz, do coral ou da oitava.</small>
         </div>
+        <div class="field" id="harmField">
+          <span class="flabel">Segunda voz</span>
+          <div class="seg" id="harmSeg" role="group" aria-label="Segunda voz">
+            <button type="button" data-v="up">Acima de você</button>
+            <button type="button" data-v="down">Abaixo de você</button>
+          </div>
+          <small>Na dupla, quem faz a voz mais aguda? Troque e ouça a diferença.</small>
+        </div>
         <div class="field">
           <div class="field-top"><label for="fxAmt">Efeitos</label><output id="fxAmtOut">100</output></div>
           <input type="range" id="fxAmt" min="0" max="150" step="1">
@@ -397,35 +409,58 @@ const RANGES = { grave: [70, 700], ampla: [80, 1100], aguda: [120, 1300] };
 /* ---------- presets ----------
    voices: kind main|third|fifth|octave|double; gain; pan (-1..1); formant (timbre); detune (cents); delayMs
    ir/wet: reverb (s / mix) · delay/fb/dWet: eco · hp/lp/drive: filtro e saturação · pres/air: brilho · comp: [limiar, razão] */
+const GROUPS = [
+  { id: 'sertanejo', name: 'Sertanejo', note: 'Duplas e solos, com a segunda voz sempre no tom' },
+  { id: 'estudio', name: 'Estúdio', note: 'Sons de gravação e de palco' },
+  { id: 'brincar', name: 'Para brincar', note: 'Timbres e efeitos' }
+];
 const PRESETS = [
-  { id: 'natural', name: 'Natural', desc: 'Sua voz, só que afinada.', tag: 'correção suave',
+  { id: 'dupla', group: 'sertanejo', name: 'Dupla sertaneja', desc: 'Uma segunda voz em terça, sempre no tom.', tag: '+1 voz',
+    corr: 70, voices: [{ kind: 'main', pan: -0.2 }, { kind: 'third', gain: 0.72, pan: 0.35 }], ir: 1.4, wet: 0.2, pres: 3, air: 3, comp: [-26, 4], makeup: 2.0 },
+  { id: 'potente', group: 'sertanejo', name: 'Dupla potente', desc: 'Voz de peito, rasgada, com segunda voz forte.', tag: 'rasgada · +1 voz',
+    corr: 65, voices: [{ kind: 'main', rough: 0.55, formant: 0.95, pan: -0.15 }, { kind: 'third', gain: 0.7, pan: 0.35, rough: 0.35 }, { kind: 'octave', gain: 0.16, formant: 0.85 }],
+    drive: 0.25, pres: 4, air: 2, comp: [-32, 6], makeup: 2.4, ir: 1.6, wet: 0.22, delay: 0.3, fb: 0.18, dWet: 0.08 },
+  { id: 'aguda', group: 'sertanejo', name: 'Dupla aguda', desc: 'Terças altas e brilhantes, voz limpa.', tag: 'terça alta',
+    corr: 75, voices: [{ kind: 'main', pan: -0.2 }, { kind: 'third', gain: 0.8, pan: 0.35, formant: 1.06 }],
+    pres: 3, air: 5, comp: [-26, 4], makeup: 2.0, ir: 2.2, wet: 0.25, delay: 0.28, fb: 0.15, dWet: 0.07 },
+  { id: 'raiz', group: 'sertanejo', name: 'Moda de viola', desc: 'Duas vozes em terça, som de disco antigo.', tag: 'raiz',
+    corr: 30, voices: [{ kind: 'main', pan: -0.15 }, { kind: 'third', gain: 0.85, pan: 0.15 }],
+    hp: 170, lp: 7500, drive: 0.12, mid: 4, pres: 1, air: 0, comp: [-22, 3], makeup: 1.9, ir: 0.7, wet: 0.12 },
+  { id: 'feminejo', group: 'sertanejo', name: 'Feminejo', desc: 'Pop sertanejo moderno: brilho, dobra e terça.', tag: 'dobra · terça',
+    corr: 80, voices: [{ kind: 'main' }, { kind: 'double', gain: 0.35, pan: -0.6, detune: 8, delayMs: 15 }, { kind: 'third', gain: 0.6, pan: 0.45 }],
+    pres: 4, air: 5, comp: [-30, 5], makeup: 2.2, ir: 1.5, wet: 0.2, delay: 0.33, fb: 0.2, dWet: 0.1 },
+  { id: 'sofrencia', group: 'sertanejo', name: 'Sofrência', desc: 'Voz cheia e intensa, reverb de balada.', tag: 'solo intenso',
+    corr: 55, voices: [{ kind: 'main', rough: 0.3, formant: 0.96 }],
+    drive: 0.15, pres: 3, air: 3, comp: [-30, 5], makeup: 2.3, ir: 2.6, wet: 0.3, delay: 0.42, fb: 0.25, dWet: 0.12 },
+
+  { id: 'natural', group: 'estudio', name: 'Natural', desc: 'Sua voz, só que afinada.', tag: 'correção suave',
     corr: 25, voices: [{ kind: 'main' }], ir: 1.0, wet: 0.14, pres: 2, air: 2, comp: [-22, 3], makeup: 1.6 },
-  { id: 'pop', name: 'Pop de rádio', desc: 'Voz na cara, dobrada como em estúdio.', tag: 'voz dobrada',
+  { id: 'pop', group: 'estudio', name: 'Pop de rádio', desc: 'Voz na cara, dobrada como em estúdio.', tag: 'voz dobrada',
     corr: 65, voices: [{ kind: 'main' }, { kind: 'double', gain: 0.42, pan: -0.7, detune: 9, delayMs: 17 }, { kind: 'double', gain: 0.42, pan: 0.7, detune: -9, delayMs: 26 }],
     ir: 1.3, wet: 0.18, pres: 4, air: 4, comp: [-30, 5], makeup: 2.2 },
-  { id: 'robo', name: 'Robô', desc: 'Salta de nota em nota, sem deslizar.', tag: 'correção instantânea',
+  { id: 'robo', group: 'estudio', name: 'Robô', desc: 'Salta de nota em nota, sem deslizar.', tag: 'correção instantânea',
     corr: 100, voices: [{ kind: 'main' }], ir: 1.0, wet: 0.12, delay: 0.24, fb: 0.18, dWet: 0.08, pres: 4, air: 3, comp: [-28, 5], makeup: 2.2 },
-  { id: 'dupla', name: 'Dupla sertaneja', desc: 'Uma segunda voz em terça, sempre no tom.', tag: '+1 voz',
-    corr: 70, voices: [{ kind: 'main', pan: -0.2 }, { kind: 'third', gain: 0.72, pan: 0.35 }], ir: 1.4, wet: 0.2, pres: 3, air: 3, comp: [-26, 4], makeup: 2.0 },
-  { id: 'coral', name: 'Coral', desc: 'Você, a terça e a quinta, numa igreja.', tag: '+2 vozes',
+  { id: 'coral', group: 'estudio', name: 'Coral', desc: 'Você, a terça e a quinta, numa igreja.', tag: '+2 vozes',
     corr: 75, voices: [{ kind: 'main' }, { kind: 'third', gain: 0.6, pan: -0.55 }, { kind: 'fifth', gain: 0.55, pan: 0.55 }], ir: 3.2, wet: 0.38, pres: 1, air: 3, comp: [-24, 3], makeup: 1.8 },
-  { id: 'rock50', name: 'Rock anos 50', desc: 'Eco curto e som de rádio antigo.', tag: 'slapback',
-    corr: 40, voices: [{ kind: 'main' }], ir: 0.8, wet: 0.06, delay: 0.11, fb: 0.1, dWet: 0.32, hp: 140, lp: 7000, drive: 0.3, pres: 3, air: 0, comp: [-24, 4], makeup: 2.0 },
-  { id: 'am', name: 'Rádio AM', desc: 'Abafado e saturado, como num radinho.', tag: 'filtro',
-    corr: 50, voices: [{ kind: 'main' }], hp: 450, lp: 3200, drive: 0.55, pres: 2, air: 0, comp: [-30, 6], makeup: 2.4 },
-  { id: 'estadio', name: 'Estádio', desc: 'Eco longo e reverb de show ao vivo.', tag: 'eco longo',
+  { id: 'estadio', group: 'estudio', name: 'Estádio', desc: 'Eco longo e reverb de show ao vivo.', tag: 'eco longo',
     corr: 55, voices: [{ kind: 'main' }], ir: 3.8, wet: 0.34, delay: 0.38, fb: 0.32, dWet: 0.2, pres: 3, air: 3, comp: [-26, 4], makeup: 2.0 },
-  { id: 'grossa', name: 'Voz grossa', desc: 'Mesma nota, timbre mais grave.', tag: 'timbre ↓',
+
+  { id: 'rock50', group: 'brincar', name: 'Rock anos 50', desc: 'Eco curto e som de rádio antigo.', tag: 'slapback',
+    corr: 40, voices: [{ kind: 'main' }], ir: 0.8, wet: 0.06, delay: 0.11, fb: 0.1, dWet: 0.32, hp: 140, lp: 7000, drive: 0.3, pres: 3, air: 0, comp: [-24, 4], makeup: 2.0 },
+  { id: 'am', group: 'brincar', name: 'Rádio AM', desc: 'Abafado e saturado, como num radinho.', tag: 'filtro',
+    corr: 50, voices: [{ kind: 'main' }], hp: 450, lp: 3200, drive: 0.55, pres: 2, air: 0, comp: [-30, 6], makeup: 2.4 },
+  { id: 'grossa', group: 'brincar', name: 'Voz grossa', desc: 'Mesma nota, timbre mais grave.', tag: 'timbre ↓',
     corr: 45, voices: [{ kind: 'main', formant: 0.82 }], ir: 1.0, wet: 0.14, pres: 2, air: 1, comp: [-24, 3], makeup: 1.9 },
-  { id: 'fina', name: 'Voz fina', desc: 'Mesma nota, timbre mais agudo.', tag: 'timbre ↑',
+  { id: 'fina', group: 'brincar', name: 'Voz fina', desc: 'Mesma nota, timbre mais agudo.', tag: 'timbre ↑',
     corr: 45, voices: [{ kind: 'main', formant: 1.25 }], ir: 1.0, wet: 0.14, pres: 1, air: 2, comp: [-24, 3], makeup: 1.8 },
-  { id: 'gigante', name: 'Gigante', desc: 'Você e mais uma voz uma oitava abaixo.', tag: 'oitava abaixo',
+  { id: 'gigante', group: 'brincar', name: 'Gigante', desc: 'Você e mais uma voz uma oitava abaixo.', tag: 'oitava abaixo',
     corr: 60, voices: [{ kind: 'main', gain: 0.6, formant: 0.92 }, { kind: 'octave', gain: 0.95, formant: 0.78 }], ir: 1.8, wet: 0.2, pres: 1, air: 0, comp: [-28, 4], makeup: 2.2 }
 ];
-const PD = { delay: 0, fb: 0, dWet: 0, ir: 0, wet: 0, hp: 20, lp: 20000, drive: 0, pres: 2, air: 2, comp: [-24, 3], makeup: 1.8 };
+const PD = { delay: 0, fb: 0, dWet: 0, ir: 0, wet: 0, hp: 20, lp: 20000, drive: 0, mid: 0, pres: 2, air: 2, comp: [-24, 3], makeup: 1.8 };
+const hasHarm = (p) => p.voices.some((v) => v.kind === 'third' || v.kind === 'fifth');
 const presetById = (id) => Object.assign({}, PD, PRESETS.find((p) => p.id === id) || PRESETS[1]);
 
-const DEFAULTS = { url: '', key: 9, mode: 'minor', preset: 'pop', correction: 65, extraVol: 100, fxAmt: 100, voiceVol: 85, videoVol: 70,
+const DEFAULTS = { url: '', key: 9, mode: 'minor', preset: 'dupla', harmDir: 'up', correction: 65, extraVol: 100, fxAmt: 100, voiceVol: 85, videoVol: 70,
   output: 'fone', range: 'ampla', gate: -52, micId: '', tuneOn: true, aec: false };
 const STORE = 'voicetunning.v2';
 
@@ -448,7 +483,16 @@ if (location.protocol === 'file:' || !window.isSecureContext) {
 
 /* ---------- grade de presets ---------- */
 const presetBox = $('#presets');
-PRESETS.forEach((p) => {
+GROUPS.forEach((gr) => {
+  const h = document.createElement('div');
+  h.className = 'pgroup';
+  h.innerHTML = '<b></b><span></span>';
+  h.querySelector('b').textContent = gr.name;
+  h.querySelector('span').textContent = gr.note;
+  presetBox.appendChild(h);
+  PRESETS.filter((p) => p.group === gr.id).forEach(addPresetButton);
+});
+function addPresetButton(p) {
   const b = document.createElement('button');
   b.type = 'button'; b.className = 'preset'; b.dataset.id = p.id;
   b.innerHTML = '<span class="pname"></span><span class="pdesc"></span><span class="ptag"></span>';
@@ -457,7 +501,7 @@ PRESETS.forEach((p) => {
   b.querySelector('.ptag').textContent = p.tag;
   b.addEventListener('click', () => selectPreset(p.id));
   presetBox.appendChild(b);
-});
+}
 function renderPresets() {
   presetBox.querySelectorAll('.preset').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === S.preset)));
   const p = presetById(S.preset);
@@ -466,11 +510,13 @@ function renderPresets() {
   const hasExtra = p.voices.length > 1;
   $('#extraVol').disabled = !hasExtra;
   $('#extraHint').textContent = hasExtra ? 'Volume da segunda voz, do coral, da dobra ou da oitava.' : 'Este preset não tem vozes extras.';
+  $('#harmField').hidden = !hasHarm(p);
+  syncSeg('#harmSeg', S.harmDir);
 }
 function selectPreset(id) {
   S.preset = id;
   const p = presetById(id);
-  S.correction = p.corr; S.extraVol = 100; S.fxAmt = 100;
+  S.correction = p.corr; S.extraVol = 100; S.fxAmt = 100; S.harmDir = p.harmDir || 'up';
   save(); syncRanges(); renderPresets(); applyAudio();
 }
 $('#resetPreset').addEventListener('click', () => selectPreset(S.preset));
@@ -530,6 +576,7 @@ function seg(sel, key, cb) {
   syncSeg(sel, S[key]);
 }
 seg('#modeSeg', 'mode', keyChanged);
+seg('#harmSeg', 'harmDir', sendVoices);
 seg('#outSeg', 'output', () => { renderOutTip(); applyAudio(); });
 seg('#rangeSeg', 'range', () => { $('#lowLat').checked = S.range === 'aguda'; sendTuner(true); drawGraph(); });
 $('#lowLat').checked = S.range === 'aguda';
@@ -580,7 +627,7 @@ async function ensureCtx() {
 async function loadWorklet() {
   const src = $('#worklet-src').textContent;
   const tries = [
-    () => 'voice-tuner.js?v=3',
+    () => 'voice-tuner.js?v=4',
     () => URL.createObjectURL(new Blob([src], { type: 'text/javascript' })),
     () => 'data:text/javascript;base64,' + btoa(unescape(encodeURIComponent(src)))
   ];
@@ -607,6 +654,7 @@ function buildGraph() {
   n.colLP = biquad('lowpass', 20000, null, 0.7);
   n.shaper = ctx.createWaveShaper(); n.shaper.oversample = '2x';
   n.mud = biquad('peaking', 280, -3, 1);
+  n.mid = biquad('peaking', 1100, 0, 1.2);
   n.pres = biquad('peaking', 3200, 3, 0.9);
   n.ess = biquad('peaking', 7000, -2, 2.5);
   n.air = biquad('highshelf', 10000, 3);
@@ -622,7 +670,7 @@ function buildGraph() {
   n.meter = ctx.createAnalyser(); n.meter.fftSize = 1024;
   n.hpf.connect(n.tuner);
   n.tuner.connect(n.colHP); n.colHP.connect(n.colLP); n.colLP.connect(n.shaper); n.shaper.connect(n.mud);
-  n.mud.connect(n.pres); n.pres.connect(n.ess); n.ess.connect(n.air); n.air.connect(n.comp); n.comp.connect(n.makeup);
+  n.mud.connect(n.mid); n.mid.connect(n.pres); n.pres.connect(n.ess); n.ess.connect(n.air); n.air.connect(n.comp); n.comp.connect(n.makeup);
   n.makeup.connect(n.dry); n.dry.connect(n.bus);
   n.makeup.connect(n.verb); n.verb.connect(n.verbWet); n.verbWet.connect(n.bus);
   n.makeup.connect(n.delay); n.delay.connect(n.delayWet); n.delayWet.connect(n.bus); n.delay.connect(n.fb); n.fb.connect(n.delay);
@@ -655,6 +703,7 @@ function applyAudio() {
   if (curDrive !== p.drive) { N.shaper.curve = driveCurve(p.drive); curDrive = p.drive; }
   set(N.pres.gain, p.pres - (caixa ? 1.5 : 0));
   set(N.air.gain, p.air);
+  set(N.mid.gain, p.mid);
   set(N.comp.threshold, p.comp[0]); set(N.comp.ratio, p.comp[1]);
   set(N.makeup.gain, p.makeup);
   if (p.ir) { if (curIR !== p.ir) { N.verb.buffer = makeIR(p.ir); curIR = p.ir; } }
@@ -669,7 +718,8 @@ function applyAudio() {
 function sendVoices() {
   if (!N) return;
   const p = presetById(S.preset), ex = S.extraVol / 100;
-  const list = p.voices.map((v, i) => Object.assign({}, v, { gain: (v.gain == null ? 1 : v.gain) * (i === 0 ? 1 : ex) }));
+  const dir = S.harmDir === 'down' ? -1 : 1;
+  const list = p.voices.map((v, i) => Object.assign({}, v, { gain: (v.gain == null ? 1 : v.gain) * (i === 0 ? 1 : ex), dir }));
   N.tuner.port.postMessage({ type: 'voices', list });
 }
 function sendTuner(rangeChanged) {

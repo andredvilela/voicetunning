@@ -69,6 +69,8 @@ class TunerEngine {
         gain: c.gain == null ? 1 : c.gain,
         formant: Math.max(this.FMIN, Math.min(1.5, c.formant || 1)),
         detune: c.detune || 0,
+        dir: c.dir === -1 ? -1 : 1,
+        rough: Math.max(0, Math.min(1, c.rough || 0)), flip: false,
         delay: Math.min(this.MAXDELAY, Math.round((c.delayMs || 0) * this.sr / 1000)),
         gL: Math.SQRT2 * Math.cos(ang), gR: Math.SQRT2 * Math.sin(ang)
       };
@@ -96,11 +98,12 @@ class TunerEngine {
     }
     return best;
   }
-  // nota 'steps' graus acima na escala (2 = terça, 4 = quinta)
+  // nota 'steps' graus da escala acima (positivo) ou abaixo (negativo): ±2 = terça, ±4 = quinta
   harm(t, steps) {
-    if (this.isChromatic()) return t + (steps === 2 ? 4 : 7);
+    const dir = steps < 0 ? -1 : 1, want = Math.abs(steps);
+    if (this.isChromatic()) return t + dir * (want === 2 ? 4 : 7);
     let n = t, c = 0, guard = 0;
-    while (c < steps && guard++ < 24) { n++; if (this.scale[((n % 12) + 12) % 12]) c++; }
+    while (c < want && guard++ < 24) { n += dir; if (this.scale[((n % 12) + 12) % 12]) c++; }
     return n;
   }
   frameAt(t) {
@@ -179,8 +182,8 @@ class TunerEngine {
     switch (v.kind) {
       case 'double': return corr + v.detune / 100;
       case 'octave': return corr - 12;
-      case 'third': return tgt < 0 ? corr + 4 : corr + this.harm(tgt, 2) - tgt;
-      case 'fifth': return tgt < 0 ? corr + 7 : corr + this.harm(tgt, 4) - tgt;
+      case 'third': return tgt < 0 ? corr + 4 * v.dir : corr + this.harm(tgt, 2 * v.dir) - tgt;
+      case 'fifth': return tgt < 0 ? corr + 7 * v.dir : corr + this.harm(tgt, 4 * v.dir) - tgt;
       default: return corr;
     }
   }
@@ -202,11 +205,17 @@ class TunerEngine {
       else if (v.kind === 'octave') ratio = 1;
       // consoantes: vozes de harmonia/oitava entram mais baixas para não embolar
       const uv = voiced || v.kind === 'main' || v.kind === 'double' ? 1 : 0.3;
-      const g = (fi >= 0 ? this.fGate[fi] : 0) * v.gain * uv;
+      let g = (fi >= 0 ? this.fGate[fi] : 0) * v.gain * uv;
       const beta = v.formant;
       const T = Math.max(8, Math.round(P));
       const Tg = Math.max(8, Math.round(T / beta));
-      const Ts = P / ratio;
+      let Ts = P / ratio;
+      // voz rasgada: pulsos alternados (sub-harmônico, o "rosnado") + pequenas variações de amplitude e período
+      if (v.rough > 0 && voiced) {
+        v.flip = !v.flip;
+        g *= 1 + (v.flip ? 1 : -1) * v.rough * 0.28 + (Math.random() * 2 - 1) * v.rough * 0.18;
+        Ts *= 1 + (Math.random() * 2 - 1) * v.rough * 0.012;
+      }
       const norm = (Ts / Tg) * g;
       if (norm > 1e-5) {
         const c = Math.round(v.sMark), w = Math.PI / Tg, gl = norm * v.gL, gr = norm * v.gR;
